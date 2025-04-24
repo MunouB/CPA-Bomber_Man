@@ -343,6 +343,10 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
   }
 
   useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      const zoomFactor = 1.02
+      if (e.deltaY < 0) state.current.zoom *= zoomFactor
+    }
     if (ref.current) {
       initCanvas(iterate)(ref.current)
       window.addEventListener('keydown', handleKeyDown)

@@ -78,6 +78,7 @@ export type State = {
   score: number
   paused: boolean
   muted: boolean
+  zoom: number
 }
 
 export const generateMap = (width: number, height: number): TileType[][] => {
@@ -211,5 +212,6 @@ export const createInitialState = ():State => (
     score: 0,
     paused: false,
     muted: false,
+    zoom: 1,
   }
 )
