@@ -1,0 +1,67 @@
+// This file contains the images used in the game.} 
+
+export const playerSprites = {
+    up: new Image(),
+    down: new Image(),
+    left: new Image(),
+    right: new Image(),
+};
+
+playerSprites.up.src = 'player-up.png'
+playerSprites.down.src = 'player-down.png'
+playerSprites.left.src = 'player-left.png'
+playerSprites.right.src = 'player-right.png'
+
+export const bombImage = new Image()
+bombImage.src = 'bomb.png'
+
+export const explosionImage = new Image()
+explosionImage.src = 'explosion.png'
+
+export const wallImage = new Image()
+wallImage.src = 'wall.png'
+
+export const breakableImage = new Image()
+breakableImage.src = 'breakable.png'
+
+export const waterImage = new Image()
+waterImage.src = 'water.png'
+
+export const emptyImage = new Image()
+emptyImage.src = 'empty.png'
+
+export const enemyImage = new Image()
+enemyImage.src = 'enemy.png'
+
+export const powerupBombImage = new Image()
+powerupBombImage.src = 'powerupBomb.png'
+
+export const powerupRangeImage = new Image()
+powerupRangeImage.src = 'powerupRange.png'
+
+export const powerupFreezeImage = new Image()
+powerupFreezeImage.src = 'powerupFreeze.png'
+
+export const levelImage = new Image()
+levelImage.src = 'level.png'
+
+export const scoreImage = new Image()
+scoreImage.src = 'score.png'
+
+export const timeImage = new Image()
+timeImage.src = 'time.png'
+
+export const restartImage = new Image()
+restartImage.src = 'restart.png'
+
+export const pauseImage = new Image()
+pauseImage.src = 'pause.png'
+
+export const continueImage = new Image()
+continueImage.src = 'continue.png'
+
+export const muteImage = new Image()
+muteImage.src = 'mute.png'
+
+export const unmuteImage = new Image()
+unmuteImage.src = 'unmute.png'
