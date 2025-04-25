@@ -9,6 +9,11 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   ctx.save()
+  const pattern = ctx.createPattern(img.backgroundImage, 'repeat')
+  if (pattern) {
+    ctx.fillStyle = pattern
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+  }
   ctx.scale(state.zoom, state.zoom)
   
   for (let y = 0; y < state.gameMap.height; y++) {
@@ -27,10 +32,6 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
           break
         case TileType.WATER:
           ctx.drawImage(img.waterImage, px, py, tileSize, tileSize)
-          break
-        case TileType.EMPTY:
-          ctx.fillStyle = '#dedede'
-          ctx.fillRect(px, py, tileSize, tileSize)
           break
         case TileType.EXPLOSION:
           ctx.drawImage(img.explosionImage, px, py, tileSize, tileSize)
@@ -133,6 +134,7 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
     ctx.font = `${Math.floor(tileSize * 0.4)}px 'Press Start 2P'`
     ctx.fillText('Press any key to continue', tileSize * 20, (conf.HEIGHT + 1.75) * tileSize)
     ctx.font = `${Math.floor(tileSize * 0.5)}px 'Press Start 2P'`
+
 }
 
   ctx.restore()

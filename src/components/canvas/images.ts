@@ -71,3 +71,6 @@ zoomInImage.src = 'zoomIn.png'
 
 export const zoomOutImage = new Image()
 zoomOutImage.src = 'zoomOut.png'
+
+export const backgroundImage = new Image()
+backgroundImage.src = 'background.png'
