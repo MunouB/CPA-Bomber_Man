@@ -212,6 +212,6 @@ export const createInitialState = ():State => (
     score: 0,
     paused: false,
     muted: false,
-    zoom: 1,
+    zoom: 1.0,
   }
 )

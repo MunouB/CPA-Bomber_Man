@@ -182,6 +182,12 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         state.current.muted = !state.current.muted
         music.muted = state.current.muted
         break
+      case '+':
+        state.current.zoom = Math.min(state.current.zoom + 0.1, 3.0)
+        break
+      case '-':
+        state.current.zoom = Math.max(state.current.zoom - 0.1, 0.5)
+        break
     }
     if (newX >= 0 && newX < state.current.gameMap.width && newY >= 0 && newY < state.current.gameMap.height) {
       const tile = state.current.gameMap.tiles[newY][newX]
@@ -325,7 +331,6 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       
     // }
 
-    // Render the game state
     if (!state.current.paused){
       requestAnimationFrame(() => iterate(ctx))
     } 
@@ -339,20 +344,26 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       }
       window.addEventListener('keydown', resume)
     }
+    // Render the game state
     render(ctx)(state.current)
   }
 
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
+      if (!state.current.gameStarted) return
       const zoomFactor = 1.02
       if (e.deltaY < 0) state.current.zoom *= zoomFactor
+      else state.current.zoom /= zoomFactor
+      state.current.zoom = Math.max(0.5, Math.min(3, state.current.zoom))
     }
     if (ref.current) {
       initCanvas(iterate)(ref.current)
-      window.addEventListener('keydown', handleKeyDown)
+      window.addEventListener('keydown', handleKeyDown)      
+      ref.current.addEventListener('wheel', onWheel)
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
+      ref.current.removeEventListener('wheel', onWheel)
     }
   }, [])
   return <canvas {...{ height, width, ref }} />

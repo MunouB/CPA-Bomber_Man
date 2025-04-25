@@ -65,3 +65,9 @@ muteImage.src = 'mute.png'
 
 export const unmuteImage = new Image()
 unmuteImage.src = 'unmute.png'
+
+export const zoomInImage = new Image()
+zoomInImage.src = 'zoomIn.png'
+
+export const zoomOutImage = new Image()
+zoomOutImage.src = 'zoomOut.png'

@@ -7,6 +7,9 @@ import { TileType, State } from './state'
 export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   const tileSize = conf.TILESIZE
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+
+  ctx.save()
+  ctx.scale(state.zoom, state.zoom)
   
   for (let y = 0; y < state.gameMap.height; y++) {
     for (let x = 0; x < state.gameMap.width; x++) {
@@ -47,10 +50,12 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   ctx.drawImage(img.powerupBombImage, tileSize * 3, (conf.HEIGHT + 1) * tileSize, tileSize, tileSize)
   ctx.drawImage(img.powerupFreezeImage, tileSize * 6, (conf.HEIGHT) * tileSize, tileSize, tileSize)
   ctx.drawImage(img.timeImage, tileSize * 6, (conf.HEIGHT + 1) * tileSize, tileSize, tileSize)
-  ctx.drawImage(pauseIcon, tileSize * 10, (conf.HEIGHT) * tileSize, tileSize, tileSize)
-  ctx.drawImage(img.restartImage, tileSize * 10, (conf.HEIGHT+1) * tileSize, tileSize, tileSize)
-  ctx.drawImage(muteIcon, tileSize * 13, (conf.HEIGHT) * tileSize, tileSize, tileSize)
-  ctx.drawImage(img.scoreImage, tileSize * 13, (conf.HEIGHT+1) * tileSize, tileSize, tileSize)
+  ctx.drawImage(img.zoomInImage, tileSize * 10, (conf.HEIGHT) * tileSize, tileSize, tileSize)
+  ctx.drawImage(img.zoomOutImage, tileSize * 10, (conf.HEIGHT+1) * tileSize, tileSize, tileSize)
+  ctx.drawImage(pauseIcon, tileSize * 13, (conf.HEIGHT) * tileSize, tileSize, tileSize)
+  ctx.drawImage(img.restartImage, tileSize * 13, (conf.HEIGHT+1) * tileSize, tileSize, tileSize)
+  ctx.drawImage(muteIcon, tileSize * 16, (conf.HEIGHT) * tileSize, tileSize, tileSize)
+  ctx.drawImage(img.scoreImage, tileSize * 16, (conf.HEIGHT+1) * tileSize, tileSize, tileSize)
   
   ctx.fillStyle = 'brown'
   ctx.font = `${Math.floor(tileSize * 0.5)}px 'Press Start 2P'`
@@ -61,10 +66,12 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   ctx.fillText(`${state.player.bombs}`, tileSize * 4, (conf.HEIGHT + 1.75) * tileSize)
   ctx.fillText(`${Math.ceil((state.freezeTimer ?? 0) / 60)}s`, tileSize * 7, (conf.HEIGHT + 0.75) * tileSize)
   ctx.fillText(`${Math.ceil(state.levelTimer / 60)}s`, tileSize * 7, (conf.HEIGHT + 1.75) * tileSize)
-  ctx.fillText('P', tileSize * 11, (conf.HEIGHT + 0.75) * tileSize)
-  ctx.fillText('R', tileSize * 11, (conf.HEIGHT + 1.75) * tileSize)
-  ctx.fillText('M', tileSize * 14, (conf.HEIGHT + 0.75) * tileSize)
-  ctx.fillText(`${state.score}`, tileSize * 14, (conf.HEIGHT + 1.75) * tileSize)
+  ctx.fillText('+', tileSize * 11, (conf.HEIGHT + 0.75) * tileSize)
+  ctx.fillText('-', tileSize * 11, (conf.HEIGHT + 1.75) * tileSize)
+  ctx.fillText('P', tileSize * 14, (conf.HEIGHT + 0.75) * tileSize)
+  ctx.fillText('R', tileSize * 14, (conf.HEIGHT + 1.75) * tileSize)
+  ctx.fillText('M', tileSize * 17, (conf.HEIGHT + 0.75) * tileSize)
+  ctx.fillText(`${state.score}`, tileSize * 17, (conf.HEIGHT + 1.75) * tileSize)
 
   // Render player
   const playerImg = playerSprites[state.player.direction]
@@ -105,16 +112,22 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
     ctx.fillText('Press P to continue', tileSize * 19, (conf.HEIGHT + 1.75) * tileSize)
   }
   if (state.gameOver) {
-    ctx.fillText('Game Over', tileSize * 21.5, (conf.HEIGHT + 0.75) * tileSize)
-    ctx.fillText('Press R to restart', tileSize * 19, (conf.HEIGHT + 1.75) * tileSize)
+    ctx.fillText('Game Over', tileSize * 22.5, (conf.HEIGHT + 0.75) * tileSize)
+    ctx.fillText('Press R to restart', tileSize * 20, (conf.HEIGHT + 1.75) * tileSize)
   }
   if (!state.gameStarted){
-    ctx.fillText('Press any key to start', tileSize * 17, (conf.HEIGHT + 1.25) * tileSize)
+    ctx.font = `${Math.floor(tileSize * 0.4)}px 'Press Start 2P'`
+    ctx.fillText('Press any key to start', tileSize * 20, (conf.HEIGHT + 1.25) * tileSize)
+    ctx.font = `${Math.floor(tileSize * 0.5)}px 'Press Start 2P'`
     return
   }
   if (state.victory) {
-    ctx.fillText('YOU WIN', tileSize * 22, (conf.HEIGHT + 0.75) * tileSize)
-    ctx.fillText('Press any key to continue', tileSize * 17, (conf.HEIGHT + 1.75) * tileSize)
-  }
+    ctx.fillText('YOU WIN', tileSize * 23.5, (conf.HEIGHT + 0.75) * tileSize)
+    ctx.font = `${Math.floor(tileSize * 0.4)}px 'Press Start 2P'`
+    ctx.fillText('Press any key to continue', tileSize * 20, (conf.HEIGHT + 1.75) * tileSize)
+    ctx.font = `${Math.floor(tileSize * 0.5)}px 'Press Start 2P'`
+}
+
+  ctx.restore()
 
 }
