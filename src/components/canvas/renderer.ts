@@ -57,7 +57,7 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   ctx.drawImage(muteIcon, tileSize * 16, (conf.HEIGHT) * tileSize, tileSize, tileSize)
   ctx.drawImage(img.scoreImage, tileSize * 16, (conf.HEIGHT+1) * tileSize, tileSize, tileSize)
   
-  ctx.fillStyle = 'brown'
+  ctx.fillStyle = conf.TEXTCOLOR
   ctx.font = `${Math.floor(tileSize * 0.5)}px 'Press Start 2P'`
 
   ctx.fillText(`${aliveEnemies}`, tileSize, (conf.HEIGHT + 0.75) * tileSize)
@@ -103,10 +103,17 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   state.powerups.forEach(p => {
     const powerupIcon = p.type === 'bomb' ? img.powerupBombImage : (p.type === 'range' ? img.powerupRangeImage : img.powerupFreezeImage)
     
-    const isBlinking = p.duration !== undefined && p.duration < 180
-    const visible = !isBlinking || Math.floor(p.duration! / 10) % 2 === 0
+    const isBlinking = p.duration !== undefined && p.duration < conf.BLINKDURATION
+    const visible = !isBlinking || Math.floor(p.duration! / conf.BLINKFRAME) % 2 === 0
     if (visible) ctx.drawImage(powerupIcon, p.x * tileSize, p.y * tileSize, tileSize, tileSize)
   })
+
+  // Render Floating texts
+  state.floatingTexts.forEach(text => {
+    ctx.fillStyle = `rgba(150,75,0,${text.duration / conf.FLOATTEXTDURATION})` // Fade out
+    ctx.fillText(text.value, text.x + conf.TILESIZE / 2, text.y)
+  })
+
   if (state.paused){
     ctx.fillText('Game Paused', tileSize * 21.5, (conf.HEIGHT + 0.75) * tileSize)
     ctx.fillText('Press P to continue', tileSize * 19, (conf.HEIGHT + 1.75) * tileSize)

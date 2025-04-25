@@ -34,11 +34,11 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     state.current.gameMap.tiles = generateMap(state.current.gameMap.width, state.current.gameMap.height)
   
     // Reset player
-    state.current.player.x = 1
-    state.current.player.y = 1
+    state.current.player.x = conf.XPLAYER
+    state.current.player.y = conf.YPLAYER
     state.current.player.alive = true
-    state.current.player.bombs = 1
-    state.current.player.bombRange = 1
+    state.current.player.bombs = conf.BOMBS
+    state.current.player.bombRange = conf.BOMBRANGE
   
     // Reset enemies (increase with level)
     const enemyCount = conf.ENEMIES + (nextLevel - 1) * conf.ADDITIONALENEMIES
@@ -48,13 +48,14 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       const y = Math.floor(Math.random() * state.current.gameMap.height)
       const tile = state.current.gameMap.tiles[y][x]
 
-      if (tile === TileType.EMPTY && x >= 5 && y >= 5) {
+      if (tile === TileType.EMPTY && x >= conf.XENEMY && y >= conf.YENEMY) {
         enemies.push({
           x,
           y,
           direction: 'right' as 'right',
           alive: true,
-          moveEvery: 0
+          moveEvery: 0,
+          aiType: Math.random() < conf.SMARTPROBABILITY ? 'smart' : 'random'
         })
       }
     }
@@ -77,7 +78,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
 
   const music = new Audio('music.mp3')
   music.loop = true
-  music.volume = 0.3
+  music.volume = conf.VOLUME
   music.autoplay = false
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -109,13 +110,14 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         const y = Math.floor(Math.random() * state.current.gameMap.height)
         const tile = state.current.gameMap.tiles[y][x]
   
-        if (tile === TileType.EMPTY && x >= 5 && y >= 5) {
+        if (tile === TileType.EMPTY && x >= conf.XENEMY && y >= conf.YENEMY) {
           enemies.push({
             x,
             y,
             direction: 'up' as 'up',
             alive: true,
-            moveEvery: 0
+            moveEvery: 0,
+            aiType: Math.random() < conf.SMARTPROBABILITY ? 'smart' as 'smart' : 'random' as 'random'
           })
         }
       }
@@ -213,13 +215,6 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       }
     }
 
-    // const explodedBombs = state.current.bombs.filter(bomb => bomb.timer <= 0)
-    // explodedBombs.forEach(bomb => {
-    //   explodeBomb(bomb, state.current)
-    // })
-
-    // state.current.bombs = state.current.bombs.filter(bomb => bomb.timer > 0)
-
     state.current.bombs.forEach(bomb => bomb.timer--)
     const toExplode = state.current.bombs.filter(b => b.timer <= 0)
 
@@ -285,16 +280,12 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         }
       }
 
-      if (!moved && Math.random() < 0.2){
+      if (!moved && Math.random() < conf.RANDOMPROBABILITY){
         const dirs: Enemy['direction'][] = ['up', 'down', 'left', 'right']
         enemy.direction = dirs[Math.floor(Math.random() * dirs.length)]
       }
-      enemy.moveEvery = 60
+      enemy.moveEvery = conf.ENEMYSPEED
     }
-
-    state.current.enemies.forEach(enemy => {
-      if (enemy.alive) tryMoveEnemy(enemy)
-    })
 
     state.current.enemies.forEach(enemy => {
       if (enemy.alive && state.current.player.alive && state.current.player.x === enemy.x && state.current.player.y === enemy.y) {
@@ -309,20 +300,101 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       if (p.x === state.current.player.x && p.y === state.current.player.y) {
         if (p.type === 'bomb') state.current.player.bombs++
         if (p.type === 'range') state.current.player.bombRange++
-        if (p.type === 'freeze') state.current.freezeTimer = 300
+        if (p.type === 'freeze') state.current.freezeTimer = conf.FREEZETIMER
 
-        state.current.score += 20
+        state.current.score += conf.POWERUPSCORE
+        state.current.floatingTexts.push({
+          x: p.x * conf.TILESIZE,
+          y: p.y * conf.TILESIZE,
+          value: `+${conf.POWERUPSCORE}`,
+          duration: conf.FLOATTEXTDURATION
+        })
         return false
       }
       return true
     })
+    state.current.floatingTexts = state.current.floatingTexts.map(text => ({...text, y: text.y - 1, duration: text.duration - 1})).filter(text => text.duration > 0)
     
 
     if (!state.current.victory && state.current.enemies.length > 0 && state.current.enemies.every(e => !e.alive)) {
       state.current.victory = true
-      state.current.score += Math.ceil(state.current.levelTimer / 60)
+      state.current.score += Math.ceil(state.current.levelTimer / conf.SECOND) * conf.TIMESCORE
       state.current.levelTimer = 0
     }
+
+    // AI generated
+    function findNextStep(map: TileType[][], start: {x: number, y: number}, goal: {x: number, y: number}): {x: number, y: number} | null {
+      const visited = new Set()
+      const queue: {x: number, y: number, path: {x: number, y: number}[]}[] = [{ x: start.x, y: start.y, path: [] }]
+      const directions = [
+        { x: 0, y: -1 },
+        { x: 0, y: 1 },
+        { x: -1, y: 0 },
+        { x: 1, y: 0 }, 
+      ]
+    
+      while (queue.length > 0) {
+        const { x, y, path } = queue.shift()!
+        const key = `${x},${y}`
+        if (visited.has(key)) continue
+        visited.add(key)
+    
+        if (x === goal.x && y === goal.y) {
+          return path[0] ?? null
+        }
+    
+        for (const d of directions) {
+          const nx = x + d.x
+          const ny = y + d.y
+          const isInBounds = nx >= 0 && nx < state.current.gameMap.width && ny >= 0 && ny < state.current.gameMap.height
+          const tile = isInBounds ? state.current.gameMap.tiles[ny][nx] : TileType.WALL
+          const isBlocked = !isWalkable(tile) || state.current.bombs.some(b => b.x === nx && b.y === ny)
+          // const isWalkable = (x: number, y: number) => {
+          //   const tile = map[y]?.[x]
+          //   const bombThere = state.current.bombs.some(b => b.x === x && b.y === y)
+          //   return (tile === TileType.EMPTY || tile === TileType.WATER) && !bombThere
+          // }
+          if (!isBlocked) {
+            queue.push({ x: nx, y: ny, path: [...path, { x: nx, y: ny }] })
+          }
+        }
+      }
+    
+      return null
+    }
+    
+
+    state.current.enemies.forEach(enemy => {
+      if (!enemy.alive || (state.current.freezeTimer && state.current.freezeTimer > 0)) return
+      if (enemy.aiType === 'smart') {
+        enemy.moveEvery++
+        if (enemy.moveEvery < conf.ENEMYSPEED) return
+        enemy.moveEvery = 0
+        const step = findNextStep(state.current.gameMap.tiles, enemy, state.current.player)
+        if (step) {
+          enemy.x = step.x
+          enemy.y = step.y
+        }
+        else{
+          const directions = ['up', 'down', 'left', 'right'].sort(() => Math.random() - 0.5)
+          for (const dir of directions) {
+            const [dx, dy] = dir === 'up' ? [0, -1]
+                          : dir === 'down' ? [0, 1]
+                          : dir === 'left' ? [-1, 0]
+                          : [1, 0]
+            const tx = enemy.x + dx
+            const ty = enemy.y + dy
+            const tile = state.current.gameMap.tiles[ty]?.[tx]
+            if (tile === TileType.EMPTY || tile === TileType.WATER) {
+              enemy.x = tx
+              enemy.y = ty
+              break
+            }
+          }
+        }
+      }
+      else tryMoveEnemy(enemy)
+    })
 
     // const loop = () => {
     //   requestAnimationFrame(loop)
@@ -351,7 +423,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
       if (!state.current.gameStarted) return
-      const zoomFactor = 1.02
+      const zoomFactor = conf.ZOOMFACTOR
       if (e.deltaY < 0) state.current.zoom *= zoomFactor
       else state.current.zoom /= zoomFactor
       state.current.zoom = Math.max(0.5, Math.min(3, state.current.zoom))

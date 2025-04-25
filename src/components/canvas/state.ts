@@ -11,14 +11,10 @@ export enum TileType {
 export type Player = {
   x : number
   y : number
-  // SMOOTH
-  // pixelX: number
-  // pixelY: number
   alive : boolean
   bombs : number
   bombRange : number
   direction : 'up' | 'down' | 'left' | 'right'
-  // moving : boolean
 }
 
 export type Bomb = {
@@ -44,6 +40,7 @@ export type Enemy = {
   alive : boolean
   direction : 'up' | 'down' | 'left' | 'right'
   moveEvery : number
+  aiType?: 'smart' | 'random'
 }
 
 export type GameMap = {
@@ -59,6 +56,13 @@ export type PowerUp = {
   y : number
   type : PowerUpType
   duration? : number
+}
+
+export type FloatingText = {
+  x: number
+  y: number
+  value: string
+  duration: number
 }
 
 export type State = {
@@ -79,6 +83,7 @@ export type State = {
   paused: boolean
   muted: boolean
   zoom: number
+  floatingTexts: FloatingText[]
 }
 
 export const generateMap = (width: number, height: number): TileType[][] => {
@@ -95,9 +100,9 @@ export const generateMap = (width: number, height: number): TileType[][] => {
       }
       else{
         const random = Math.random()
-        if (random < 0.2) {
+        if (random < conf.BREAKABLEPROBABILITY) {
           row.push(TileType.BREAKABLE)
-        } else if (random < 0.25) {
+        } else if (random < conf.WATERPROBABILITYAUX) {
           row.push(TileType.WATER)
         } else {
           row.push(TileType.EMPTY)
@@ -130,8 +135,14 @@ export const explodeBomb = (bomb: Bomb, state: State) => {
       const tile = state.gameMap.tiles[ty][tx]
       if (tile === TileType.BREAKABLE) {
         state.gameMap.tiles[ty][tx] = TileType.EMPTY
-        state.score += 10
-        if (Math.random() < 0.25) {
+        state.score += conf.BREAKABLESCORE
+        state.floatingTexts.push({
+          x: tx * conf.TILESIZE,
+          y: ty * conf.TILESIZE,
+          value: `+${conf.BREAKABLESCORE}`,
+          duration: conf.FLOATTEXTDURATION
+        })
+        if (Math.random() < conf.POWERUPROBABILITY) {
           const types: PowerUpType[] = ['bomb', 'range', 'freeze']
           const type = types[Math.floor(Math.random() * types.length)]
 
@@ -142,7 +153,7 @@ export const explodeBomb = (bomb: Bomb, state: State) => {
       if(chain) {
         explodeBomb(chain,state)
       }
-      state.explosions.push({ x: tx, y: ty, duration: 30 })
+      state.explosions.push({ x: tx, y: ty, duration: conf.EXPLOSIONDURATION })
     }
   }
 
@@ -171,7 +182,13 @@ export const explodeBomb = (bomb: Bomb, state: State) => {
       state.enemies.forEach(enemy => {
         if (enemy.alive && enemy.x === tx && enemy.y === ty) {
           enemy.alive = false
-          state.score += 25
+          state.score += conf.ENEMYSCORE
+          state.floatingTexts.push({
+            x: enemy.x * conf.TILESIZE,
+            y: enemy.y * conf.TILESIZE,
+            value: `+${conf.ENEMYSCORE}`,
+            duration: conf.FLOATTEXTDURATION
+          })
         }
       })
       if (tile === TileType.BREAKABLE) break
@@ -183,16 +200,12 @@ export const explodeBomb = (bomb: Bomb, state: State) => {
 export const createInitialState = ():State => (
   {
     player: {
-      x: 1,
-      y: 1,
-      // SMOOTH
-      // pixelX: 1 * conf.TILESIZE,
-      // pixelY: 1 * conf.TILESIZE,
+      x: conf.XPLAYER,
+      y: conf.YPLAYER,
       alive: true,
-      bombs: 1,
-      bombRange: 1,
+      bombs: conf.BOMBS,
+      bombRange: conf.BOMBRANGE,
       direction: 'right',
-      // moving : false
     },
     bombs: [],
     explosions: [],
@@ -206,12 +219,13 @@ export const createInitialState = ():State => (
     victory: false,
     powerups: [],
     gameStarted: false,
-    level: 1,
-    maxLevel: 10,
+    level: conf.STARTINGLEVEL,
+    maxLevel: conf.MAXLEVEL,
     levelTimer: conf.LEVELTIME,
     score: 0,
     paused: false,
     muted: false,
     zoom: 1.0,
+    floatingTexts: [],
   }
 )
