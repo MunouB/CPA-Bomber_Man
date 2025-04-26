@@ -1,4 +1,11 @@
-// This file contains the images used in the game.} 
+// Sorbonne Université
+// M1 STL 2024/2025
+// Conception et Pratique de l’Algorithmique
+// Projet final: Refonte d'une application de jeu vidéo
+// ALABDULLAH Muhannad
+// 21317509
+
+// Ce fichier contient les images utilisées dans le jeu
 
 export const playerSprites = {
     up: new Image(),

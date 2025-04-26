@@ -1,3 +1,12 @@
+// Sorbonne Université
+// M1 STL 2024/2025
+// Conception et Pratique de l’Algorithmique
+// Projet final: Refonte d'une application de jeu vidéo
+// ALABDULLAH Muhannad
+// 21317509
+
+// Ce fichier contient les constantes utilisées dans le jeu
+
 // Initials
 export const WIDTH = 31
 export const HEIGHT = 13

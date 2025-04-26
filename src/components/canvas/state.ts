@@ -1,3 +1,16 @@
+// Sorbonne Université
+// M1 STL 2024/2025
+// Conception et Pratique de l’Algorithmique
+// Projet final: Refonte d'une application de jeu vidéo
+// ALABDULLAH Muhannad
+// 21317509
+
+// Ce fichier contient les structures des différents éléments du jeu
+//
+// Il contient également des fonctions pour générer la carte, et l'état initial du jeu
+//
+// et pour gérer les explosions des bombes
+
 import * as conf from './conf'
 
 export enum TileType {
@@ -22,7 +35,7 @@ export type Bomb = {
   y : number
   range : number
   timer : number
-  owner : 'player' | 'enemy'
+  owner : 'player' | 'enemy' // bombes des ennemis pas implémentées
 }
 
 export type Explosion = {
@@ -34,12 +47,9 @@ export type Explosion = {
 export type Enemy = {
   x : number
   y : number
-  // SMOOTH
-  // pixelX: number
-  // pixelY: number
   alive : boolean
   direction : 'up' | 'down' | 'left' | 'right'
-  moveEvery : number
+  moveEvery : number // Vitesse de l'ennemi, elevée = plus lent
   aiType?: 'smart' | 'random'
 }
 
@@ -112,6 +122,7 @@ export const generateMap = (width: number, height: number): TileType[][] => {
     map.push(row)
   }
 
+  // Afin de rassurer que les case de départ sont vides
   map[1][1] = TileType.EMPTY
   map[1][2] = TileType.EMPTY
   map[2][1] = TileType.EMPTY
@@ -133,22 +144,24 @@ export const explodeBomb = (bomb: Bomb, state: State) => {
   const affectTiles = (tx: number, ty: number) => {
     if (tx >= 0 && tx < state.gameMap.width && ty >= 0 && ty < state.gameMap.height) {
       const tile = state.gameMap.tiles[ty][tx]
-      if (tile === TileType.BREAKABLE) {
+      if (tile === TileType.BREAKABLE) { // Casser les briques
         state.gameMap.tiles[ty][tx] = TileType.EMPTY
-        state.score += conf.BREAKABLESCORE
-        state.floatingTexts.push({
+        state.score += conf.BREAKABLESCORE // Score pour les briques
+        state.floatingTexts.push({ // Texte flottant pour le score des briques
           x: tx * conf.TILESIZE,
           y: ty * conf.TILESIZE,
           value: `+${conf.BREAKABLESCORE}`,
           duration: conf.FLOATTEXTDURATION
         })
-        if (Math.random() < conf.POWERUPROBABILITY) {
+        if (Math.random() < conf.POWERUPROBABILITY) { // Chance de faire apparaître un powerup
           const types: PowerUpType[] = ['bomb', 'range', 'freeze']
           const type = types[Math.floor(Math.random() * types.length)]
 
           state.powerups.push({ x: tx, y: ty, type, duration: conf.COUNTDOWN })
         }
       }
+      // Afin de vérifier si une autre bombe est dans l'intervalle de l'explosion de cette bombe
+      // Si oui, on l'explose aussi IMMEDIATEMENT
       const chain = state.bombs.find(b => b.x === tx && b.y === ty)
       if(chain) {
         explodeBomb(chain,state)
@@ -172,18 +185,20 @@ export const explodeBomb = (bomb: Bomb, state: State) => {
       if (tx < 0 || tx >= state.gameMap.width || ty < 0 || ty >= state.gameMap.height) break
       
       const tile = state.gameMap.tiles[ty][tx]
-      if (tile === TileType.WALL || tile === TileType.WATER) break
+      if (tile === TileType.WALL || tile === TileType.WATER) break // On ne peut pas casser les murs ni brûler l'eau
       affectTiles(tx, ty)
       
+      // Si le joueur ou un ennemi est touché par l'explosion
       if (state.player.alive && ((state.player.x === x && state.player.y === y) || (state.player.x === tx && state.player.y === ty))) {
         state.player.alive = false
         state.gameOver = true
       }
+      // Si un ennemi est touché par l'explosion
       state.enemies.forEach(enemy => {
         if (enemy.alive && enemy.x === tx && enemy.y === ty) {
           enemy.alive = false
-          state.score += conf.ENEMYSCORE
-          state.floatingTexts.push({
+          state.score += conf.ENEMYSCORE // Score pour les ennemis
+          state.floatingTexts.push({ // Texte flottant pour le score des ennemis
             x: enemy.x * conf.TILESIZE,
             y: enemy.y * conf.TILESIZE,
             value: `+${conf.ENEMYSCORE}`,
@@ -191,12 +206,13 @@ export const explodeBomb = (bomb: Bomb, state: State) => {
           })
         }
       })
-      if (tile === TileType.BREAKABLE) break
+      if (tile === TileType.BREAKABLE) break // On casse la brique et on arrête l'explosion
     }
   }
   // state.player.bombs++
 }
 
+// Fonction pour générer un état initial du jeu
 export const createInitialState = ():State => (
   {
     player: {

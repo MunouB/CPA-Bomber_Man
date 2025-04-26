@@ -1,8 +1,14 @@
+// Sorbonne Université
+// M1 STL 2024/2025
+// Conception et Pratique de l’Algorithmique
+// Projet final: Refonte d'une application de jeu vidéo
+// ALABDULLAH Muhannad
+// 21317509
+
 import * as conf from './conf'
 import { useEffect, useRef } from 'react'
 import { generateMap, isWalkable, State, TileType, explodeBomb, Enemy, createInitialState} from './state'
 import { render } from './renderer'
-import { Dirent } from 'fs'
 
 const initCanvas =
   (iterate: (ctx: CanvasRenderingContext2D) => void) =>
@@ -30,17 +36,17 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     state.current.victory = false
     state.current.levelTimer = conf.LEVELTIME + (nextLevel - 1) * conf.ADDITIONALTIME
   
-    // Re-generate the map
+    // Regénérer une nouvelle carte
     state.current.gameMap.tiles = generateMap(state.current.gameMap.width, state.current.gameMap.height)
   
-    // Reset player
+    // Rendre le joueur et les ennemis à leurs états initiaux
     state.current.player.x = conf.XPLAYER
     state.current.player.y = conf.YPLAYER
     state.current.player.alive = true
     state.current.player.bombs = conf.BOMBS
     state.current.player.bombRange = conf.BOMBRANGE
   
-    // Reset enemies (increase with level)
+    // Augmenter le nombre d'ennemis pour rendre le jeu plus difficile
     const enemyCount = conf.ENEMIES + (nextLevel - 1) * conf.ADDITIONALENEMIES
     const enemies = []
     while(enemies.length < enemyCount) {
@@ -62,7 +68,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     
     state.current.enemies = enemies as Enemy[]
   
-    // Reset powerups, bombs, explosions
+    // Rendre les powerups, les bombes et les explosions à leurs états initiaux
     state.current.bombs = []
     state.current.explosions = []
     state.current.powerups = []
@@ -165,6 +171,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         const {x, y, bombs} = state.current.player
         const tile = state.current.gameMap.tiles[y][x]
         const alreadyExists = state.current.bombs.some(b => b.x === x && b.y === y)
+        // Test effectuer afin de ne pas poser une bombe sur un mur, de l'eau ou une autre bombe
         if (tile !== TileType.WALL && tile !== TileType.WATER && !alreadyExists && bombs > 0) {
           state.current.bombs.push({
             x,
@@ -184,6 +191,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         state.current.muted = !state.current.muted
         music.muted = state.current.muted
         break
+      // Zoom in and out avec le clavier
       case '+':
         state.current.zoom = Math.min(state.current.zoom + 0.1, 3.0)
         break
@@ -196,6 +204,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
 
       const isBombThere = state.current.bombs.some(b => b.x === newX && b.y === newY)
       const isStandingOnBomb = state.current.bombs.some(b => b.x === x && b.y === y)
+      // Rassurer que le joueur ne se déplace pas sur une bombe, et qu'il peut se déplacer si il est debout sur une bombe
       if (isBombThere && !isStandingOnBomb) return
       if (isWalkable(tile)) {
         state.current.player.x = newX
@@ -204,6 +213,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
     }
   }
 
+  // Game loop
   const iterate = (ctx: CanvasRenderingContext2D) => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
@@ -245,6 +255,9 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       const {x, y} = enemy
       const directions: Enemy['direction'][] = ['up', 'down', 'left', 'right']
 
+      // Prioriser la direction actuelle de l'ennemi
+      // En premier, on essaie de se déplacer dans la direction actuelle
+      // Ensuite, on essaie de se déplacer dans les autres directions
       const preferredDirs = [enemy.direction, ...directions.filter(d => d !== enemy.direction)]
 
       let moved = false
@@ -280,6 +293,8 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         }
       }
 
+      // Une probabilité de mouvement aléatoire
+      // Si l'ennemi n'a pas bougé, il peut changer de direction aléatoirement
       if (!moved && Math.random() < conf.RANDOMPROBABILITY){
         const dirs: Enemy['direction'][] = ['up', 'down', 'left', 'right']
         enemy.direction = dirs[Math.floor(Math.random() * dirs.length)]
@@ -287,6 +302,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       enemy.moveEvery = conf.ENEMYSPEED
     }
 
+    // Vérifier si le joueur est touché par un ennemi
     state.current.enemies.forEach(enemy => {
       if (enemy.alive && state.current.player.alive && state.current.player.x === enemy.x && state.current.player.y === enemy.y) {
         state.current.player.alive = false
@@ -294,6 +310,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       }
     })
 
+    // Les powerups disparaissent après un certain temps
     state.current.powerups = state.current.powerups.map(p => ({ ...p, duration: p.duration! - 1 })).filter(p => p.duration! > 0)
     
     state.current.powerups = state.current.powerups.filter(p => {
@@ -302,8 +319,8 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         if (p.type === 'range') state.current.player.bombRange++
         if (p.type === 'freeze') state.current.freezeTimer = conf.FREEZETIMER
 
-        state.current.score += conf.POWERUPSCORE
-        state.current.floatingTexts.push({
+        state.current.score += conf.POWERUPSCORE // Score pour les powerups
+        state.current.floatingTexts.push({ // Texte flottant pour le score de la collection des powerups
           x: p.x * conf.TILESIZE,
           y: p.y * conf.TILESIZE,
           value: `+${conf.POWERUPSCORE}`,
@@ -313,18 +330,23 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       }
       return true
     })
+    // Les textes flottants disparaissent après un certain temps
     state.current.floatingTexts = state.current.floatingTexts.map(text => ({...text, y: text.y - 1, duration: text.duration - 1})).filter(text => text.duration > 0)
-    
 
     if (!state.current.victory && state.current.enemies.length > 0 && state.current.enemies.every(e => !e.alive)) {
       state.current.victory = true
-      state.current.score += Math.ceil(state.current.levelTimer / conf.SECOND) * conf.TIMESCORE
+      state.current.score += Math.ceil(state.current.levelTimer / conf.SECOND) * conf.TIMESCORE // Score pour le temps restant
       state.current.levelTimer = 0
     }
 
-    // AI generated
+    // Breadth-first search pour trouver le prochain mouvement de l'ennemi
+    // On cherche le chemin le plus court vers le joueur
+    // On utilise un ensemble pour garder une trace des cases déjà visitées
+
     function findNextStep(map: TileType[][], start: {x: number, y: number}, goal: {x: number, y: number}): {x: number, y: number} | null {
       const visited = new Set()
+      // On utilise une queue pour explorer les voisins de chaque case
+      // On commence par la position de l'ennemi
       const queue: {x: number, y: number, path: {x: number, y: number}[]}[] = [{ x: start.x, y: start.y, path: [] }]
       const directions = [
         { x: 0, y: -1 },
@@ -332,28 +354,25 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
         { x: -1, y: 0 },
         { x: 1, y: 0 }, 
       ]
-    
+      // On utilise une approche de recherche en largeur (BFS) pour trouver le chemin le plus court
       while (queue.length > 0) {
         const { x, y, path } = queue.shift()!
         const key = `${x},${y}`
         if (visited.has(key)) continue
         visited.add(key)
-    
+        // Si on trouve le joueur, on retourne la position du joueur, sinon on retourne null (on n'a pas trouvé de chemin)
         if (x === goal.x && y === goal.y) {
           return path[0] ?? null
         }
-    
+        // On explore les voisins de la case actuelle
         for (const d of directions) {
           const nx = x + d.x
           const ny = y + d.y
           const isInBounds = nx >= 0 && nx < state.current.gameMap.width && ny >= 0 && ny < state.current.gameMap.height
           const tile = isInBounds ? state.current.gameMap.tiles[ny][nx] : TileType.WALL
           const isBlocked = !isWalkable(tile) || state.current.bombs.some(b => b.x === nx && b.y === ny)
-          // const isWalkable = (x: number, y: number) => {
-          //   const tile = map[y]?.[x]
-          //   const bombThere = state.current.bombs.some(b => b.x === x && b.y === y)
-          //   return (tile === TileType.EMPTY || tile === TileType.WATER) && !bombThere
-          // }
+
+          // Si le voisin est dans les limites de la carte et n'est pas bloqué, on l'ajoute à la queue
           if (!isBlocked) {
             queue.push({ x: nx, y: ny, path: [...path, { x: nx, y: ny }] })
           }
@@ -368,6 +387,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
       if (!enemy.alive || (state.current.freezeTimer && state.current.freezeTimer > 0)) return
       if (enemy.aiType === 'smart') {
         enemy.moveEvery++
+        // Contrôler la vitesse de l'ennemi
         if (enemy.moveEvery < conf.ENEMYSPEED) return
         enemy.moveEvery = 0
         const step = findNextStep(state.current.gameMap.tiles, enemy, state.current.player)
@@ -375,6 +395,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
           enemy.x = step.x
           enemy.y = step.y
         }
+        // S'il n'y a pas de chemin vers le joueur, on déplace l'ennemi aléatoirement
         else{
           const directions = ['up', 'down', 'left', 'right'].sort(() => Math.random() - 0.5)
           for (const dir of directions) {
@@ -405,7 +426,8 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
 
     if (!state.current.paused){
       requestAnimationFrame(() => iterate(ctx))
-    } 
+    }
+    // Si le jeu est en pause, on attend que l'utilisateur appuie sur 'p' pour reprendre
     else {
       const resume = (event : KeyboardEvent) => {
         if (event.key.toLowerCase() === 'p') {
@@ -421,6 +443,7 @@ const Canvas = ({ height, width }: { height: number; width: number }) => {
   }
 
   useEffect(() => {
+    // Zoomer et dézoomer avec la molette de la souris
     const onWheel = (e: WheelEvent) => {
       if (!state.current.gameStarted) return
       const zoomFactor = conf.ZOOMFACTOR

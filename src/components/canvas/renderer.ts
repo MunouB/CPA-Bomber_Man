@@ -1,3 +1,19 @@
+// Sorbonne Université
+// M1 STL 2024/2025
+// Conception et Pratique de l’Algorithmique
+// Projet final: Refonte d'une application de jeu vidéo
+// ALABDULLAH Muhannad
+// 21317509
+
+// Ce fichier contient la logique de rendu du jeu
+//
+// Il utilise le contexte de rendu 2D de la balise canvas pour dessiner les éléments du jeu
+//
+// Il utilise également des images pour représenter les différents éléments du jeu
+//
+// Il utilise des constantes pour définir la taille des tuiles, les couleurs du texte, etc.
+//
+
 import * as conf from './conf'
 import { playerSprites } from './images'
 import * as img from './images'
@@ -9,6 +25,8 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
   ctx.save()
+
+  // Image de fond
   const pattern = ctx.createPattern(img.backgroundImage, 'repeat')
   if (pattern) {
     ctx.fillStyle = pattern
@@ -44,7 +62,7 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   const pauseIcon = state.paused ? img.continueImage : img.pauseImage
   const muteIcon = state.muted ? img.unmuteImage : img.muteImage
 
-  // Afficher Stats
+  // Render HUD
   ctx.drawImage(img.enemyImage, 0, (conf.HEIGHT) * tileSize, tileSize, tileSize)
   ctx.drawImage(img.levelImage, 0, (conf.HEIGHT + 1) * tileSize, tileSize, tileSize)
   ctx.drawImage(img.powerupRangeImage, tileSize * 3, (conf.HEIGHT) * tileSize, tileSize, tileSize)
@@ -59,8 +77,9 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
   ctx.drawImage(img.scoreImage, tileSize * 16, (conf.HEIGHT+1) * tileSize, tileSize, tileSize)
   
   ctx.fillStyle = conf.TEXTCOLOR
-  ctx.font = `${Math.floor(tileSize * 0.5)}px 'Press Start 2P'`
+  ctx.font = `${Math.floor(tileSize * 0.5)}px 'Press Start 2P'` // Font source in index.html
 
+  // Render HUD values
   ctx.fillText(`${aliveEnemies}`, tileSize, (conf.HEIGHT + 0.75) * tileSize)
   ctx.fillText(`${state.level}`, tileSize, (conf.HEIGHT + 1.75) * tileSize)
   ctx.fillText(`${state.player.bombRange}`, tileSize * 4, (conf.HEIGHT + 0.75) * tileSize)
@@ -115,9 +134,11 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
     ctx.fillText(text.value, text.x + conf.TILESIZE / 2, text.y)
   })
 
+  // Render Game state
+
   if (state.paused){
     ctx.fillText('Game Paused', tileSize * 21.5, (conf.HEIGHT + 0.75) * tileSize)
-    ctx.fillText('Press P to continue', tileSize * 19, (conf.HEIGHT + 1.75) * tileSize)
+    ctx.fillText('Press P to continue', tileSize * 20, (conf.HEIGHT + 1.75) * tileSize)
   }
   if (state.gameOver) {
     ctx.fillText('Game Over', tileSize * 22.5, (conf.HEIGHT + 0.75) * tileSize)
@@ -134,8 +155,7 @@ export const render = (ctx: CanvasRenderingContext2D) => (state: State) => {
     ctx.font = `${Math.floor(tileSize * 0.4)}px 'Press Start 2P'`
     ctx.fillText('Press any key to continue', tileSize * 20, (conf.HEIGHT + 1.75) * tileSize)
     ctx.font = `${Math.floor(tileSize * 0.5)}px 'Press Start 2P'`
-
-}
+  }
 
   ctx.restore()
 
