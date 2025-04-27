@@ -57,9 +57,9 @@ Un jeu en 2D jouable en navigateur.
 
 - Collision TRÈS simplifiée
 - Génération aléatoire de:
-  - Carte
-  - Ennemis (Position, Type)
-  - Powerups
+	- Carte
+	- Ennemis (Position, Type)
+	- Powerups
 - du pathfinding (BFS - Breadth First Search)
 
 ### L'exemple Implémenté :

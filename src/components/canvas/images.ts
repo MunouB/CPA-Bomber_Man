@@ -8,10 +8,10 @@
 // Ce fichier contient les images utilisées dans le jeu
 
 export const playerSprites = {
-    up: new Image(),
-    down: new Image(),
-    left: new Image(),
-    right: new Image(),
+	up: new Image(),
+	down: new Image(),
+	left: new Image(),
+	right: new Image(),
 };
 
 playerSprites.up.src = 'player-up.png'
